@@ -146,6 +146,12 @@ services:
       BUZZ_ACP_AGENT_OWNER: ${RELAY_OWNER_PUBKEY}
       BUZZ_ACP_AGENT_COMMAND: buzz-agent
       BUZZ_ACP_AGENT_ARGS: ""
+      # Without a tool server the agent generates a reply but has no way to post
+      # it: it publishes by shelling out to the `buzz` CLI, which lives on this
+      # image's PATH and reads BUZZ_PRIVATE_KEY/BUZZ_RELAY_URL from this env.
+      # Verified empirically — an LLM call completed with 246 output tokens and
+      # nothing reached the channel while this was unset.
+      BUZZ_ACP_MCP_COMMAND: buzz-dev-mcp
       BUZZ_AGENT_PROVIDER: ${BUZZ_AGENT_PROVIDER}
       OPENAI_COMPAT_BASE_URL: ${OPENAI_COMPAT_BASE_URL}
       OPENAI_COMPAT_API_KEY: ${OPENAI_COMPAT_API_KEY}
