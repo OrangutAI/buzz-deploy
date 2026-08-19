@@ -1,13 +1,14 @@
-# Buzz relay — Coolify (Hetzner).
+# Buzz relay, adapted for a reverse-proxy-fronted PaaS deployment.
 #
 # Upstream: block/buzz deploy/compose/compose.yml @ sha-08eb46e
-# Two deliberate deviations, both forced by this host:
-#   1. No `ports:` — host 3000 is taken by remotecode; Coolify's Traefik reaches
-#      the relay over the Docker network instead. Postgres/Redis/MinIO stay internal.
-#   2. No `env_file:` — Coolify interpolation vars do not automatically become
-#      container env vars, so every value is listed explicitly under `environment:`.
+# Two deviations from upstream:
+#   1. No `ports:` — the platform's reverse proxy reaches the relay over the
+#      Docker network. Postgres/Redis/MinIO stay internal by design.
+#   2. No `env_file:` — every value is listed explicitly under `environment:`
+#      so the platform's injected variables reach the containers.
 #
-# The bundled compose.caddy.yml override is NOT used: Traefik already owns 80/443.
+# The upstream compose.caddy.yml TLS override is NOT used; the platform
+# terminates TLS on 80/443 already.
 
 services:
   relay:
