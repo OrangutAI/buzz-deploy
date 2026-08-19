@@ -126,6 +126,37 @@ services:
       '
     restart: "no"
 
+  # SECURITY INVARIANT: this container must never gain repo mounts, database
+  # credentials, or platform tokens. It hands shell/file tools to anyone allowed
+  # to mention it, so it connects to the relay as an ordinary network member.
+  # Do not merge it into the relay service, which holds the signing key and DB password.
+  agent:
+    image: ghcr.io/block/buzz-sprig:sha-08eb46e
+    entrypoint: ["/usr/local/bin/buzz-acp"]
+    command:
+      - "--respond-to"
+      - "allowlist"
+      - "--respond-to-allowlist"
+      - "${BUZZ_AGENT_ALLOWLIST}"
+      - "--agents"
+      - "2"
+    environment:
+      BUZZ_PRIVATE_KEY: ${BUZZ_AGENT_PRIVATE_KEY}
+      BUZZ_RELAY_URL: ${RELAY_URL}
+      BUZZ_ACP_AGENT_OWNER: ${RELAY_OWNER_PUBKEY}
+      BUZZ_ACP_AGENT_COMMAND: buzz-agent
+      BUZZ_ACP_AGENT_ARGS: ""
+      BUZZ_AGENT_PROVIDER: ${BUZZ_AGENT_PROVIDER}
+      OPENAI_COMPAT_BASE_URL: ${OPENAI_COMPAT_BASE_URL}
+      OPENAI_COMPAT_API_KEY: ${OPENAI_COMPAT_API_KEY}
+      OPENAI_COMPAT_MODEL: ${OPENAI_COMPAT_MODEL}
+      # Kimi K2.6 is a thinking model: a low cap truncates before any content
+      # is emitted, producing empty replies. Verified against the live endpoint.
+      BUZZ_AGENT_MAX_OUTPUT_TOKENS: "4096"
+    depends_on:
+      relay: { condition: service_healthy }
+    restart: unless-stopped
+
 volumes:
   buzz-postgres-data:
   buzz-redis-data:
